@@ -39,6 +39,10 @@
             border-collapse: collapse;
             margin-top: 20px;
             background-color: white;
+            
+        }
+        a{
+            color: #1a1a1a;
         }
         th, td {
             text-align: left;
@@ -47,6 +51,7 @@
         }
         th {
             background-color: #f2f2f2;
+            cursor: pointer;
         }
         .positive {
             color: green;
@@ -54,14 +59,56 @@
         .negative {
             color: red;
         }
+        #loadMore {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #loadMore:hover {
+            background-color: #333;
+        }
         .news {
             background-color: white;
             padding: 20px;
             margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .news h2 {
             margin-top: 0;
-        
+            font-size: 28px;
+            color: #333;
+        }
+        .news-item {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .news-item:last-child {
+            border-bottom: none;
+        }
+        .news-item h3 {
+            margin: 0;
+            font-size: 20px;
+            color: #1a1a1a;
+        }
+        .news-item p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .news-item a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .news-item a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -73,62 +120,144 @@
         <table id="crypto-table">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Market Cap</th>
-                    <th>24h</th>
-                    <th>7d</th>
+                    <th onclick="sortTable(0)">Name</th>
+                    <th onclick="sortTable(1)">Price</th>
+                    <th onclick="sortTable(2)">Market Cap</th>
+                    <th onclick="sortTable(3)">24h</th>
+                    <th onclick="sortTable(4)">7d</th>
                 </tr>
             </thead>
             <tbody>
                 <!-- Table rows will be dynamically added here -->
             </tbody>
         </table>
-        <div class="news">
-            <h2>Crypto News</h2>
-            <h3>Bitcoin Reaches New All-Time High</h3>
-            <p>The leading cryptocurrency has surpassed its previous record, sparking renewed interest in the crypto market.</p>
-            <a href="#">Read More</a>
+        <button id="loadMore">Load More</button>
+    </div>
+    <div class="news">
+        <h2>Crypto News</h2>
+        <div class="news-item">
+            <a href="https://economictimes.indiatimes.com/markets/cryptocurrency/how-likely-is-it-for-bitcoin-to-surpass-100000-in-the-near-future/articleshow/113187917.cms?from=mdr">
+                <h3>How likely is it for Bitcoin to surpass $100,000 in the near future?</h3>
+            </a>
+            <p>Bitcoin reached its all-time high of $73,780 in March 2024, right before the halving event occurred. However, despite
+            all expectations of a bull run symmetrical to previous halving events, the world's 
+            largest cryptocurrency has disappointed investors so far registering a 15% fall in the next six months.</p>
+        </div>
+        <div class="news-item">
+            <a href="https://www.investors.com/news/cryptocurrency-prices-news/">
+                <h3>Cryptocurrency Prices And News: Bitcoin Falls To August Lows After Jobs Report</h3>
+            </a>
+            <p>Cryptocurrency News: Bitcoin and cryptocurrency prices fell Friday and reversed from a brief rally after the August jobs report came in short of forecasts. The price of bitcoin jumped near $57,000 early Friday before bottoming out at $53,334, back at its lowest level since early August.
+            Ethereum swooned 6% Friday and erased its gains from the year as the crypto markets slumped.</p>
         </div>
     </div>
 
-    <script>
-        const cryptoData = [
-            { name: 'LINK Chainlink', price: 28.12, marketCap: '112,34,567', change24h: 4.20, change7d: 8.10 },
-            { name: 'XRP Ripple', price: 0.56, marketCap: '1,23,45,678', change24h: -0.70, change7d: -2.30 },
-            { name: 'LTC Litecoin', price: 234.67, marketCap: '2,34,56,789', change24h: 1.90, change7d: -0.50 },
-            { name: 'ETH Ethereum', price: 1800.45, marketCap: '23,45,67,890', change24h: 3.10, change7d: 5.80 },
-            { name: 'BTC Bitcoin', price: 56789.12, marketCap: '1,23,45,67,890', change24h: 2.50, change7d: -1.20 },
-        ];
 
+    <script>
+        const apiUrl = 'https://api.coingecko.com/api/v3/coins/markets';
+        let cryptoData = [];
+        let currentPage = 1;
+        const pageSize = 20; // Number of items to load per page
+
+        // Function to fetch cryptocurrency data
+        async function fetchCryptoData() {
+            try {
+                const response = await fetch(`${apiUrl}?vs_currency=usd&order=market_cap_desc&per_page=${pageSize}&page=${currentPage}&sparkline=false`);
+                const data = await response.json();
+                cryptoData.push(...data); // Append the new data to cryptoData
+                populateTable(); // Update the table with the new data
+            } catch (error) {
+                console.error('Error fetching crypto data:', error);
+            }
+        }
+
+        // Function to populate the table with cryptocurrency data
         function populateTable() {
             const tableBody = document.querySelector('#crypto-table tbody');
-            tableBody.innerHTML = '';
+            tableBody.innerHTML = ''; // Clear the existing rows
 
-            cryptoData.forEach(crypto => {
+            const filteredData = applySearchFilter(cryptoData); // Apply search filter
+
+            filteredData.forEach(crypto => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${crypto.name}</td>
-                    <td>$${crypto.price.toFixed(2)}</td>
-                    <td>$${crypto.marketCap}</td>
-                    <td class="${crypto.change24h >= 0 ? 'positive' : 'negative'}">${crypto.change24h.toFixed(2)}%</td>
-                    <td class="${crypto.change7d >= 0 ? 'positive' : 'negative'}">${crypto.change7d.toFixed(2)}%</td>
+                    <td><a href="#" class="crypto-link" data-symbol="${getTradingViewSymbol(crypto.symbol)}">${crypto.name} (${crypto.symbol.toUpperCase()})</a></td>
+                    <td>$${crypto.current_price.toFixed(2)}</td>
+                    <td>$${crypto.market_cap.toLocaleString()}</td>
+                    <td class="${crypto.price_change_percentage_24h >= 0 ? 'positive' : 'negative'}">${crypto.price_change_percentage_24h.toFixed(2)}%</td>
+                    <td class="${crypto.price_change_percentage_7d_in_currency >= 0 ? 'positive' : 'negative'}">
+                        ${crypto.price_change_percentage_7d_in_currency ? crypto.price_change_percentage_7d_in_currency.toFixed(2) : 'N/A'}%
+                    </td>
                 `;
                 tableBody.appendChild(row);
             });
+
+            // Add click event to each cryptocurrency link
+            document.querySelectorAll('.crypto-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const symbol = link.getAttribute('data-symbol');
+                    openTradingView(symbol);
+                });
+            });
         }
 
-        document.addEventListener('DOMContentLoaded', populateTable);
+        // Function to get the TradingView symbol for a cryptocurrency
+        function getTradingViewSymbol(symbol) {
+            return `${symbol.toUpperCase()}USD`;
+        }
 
-        document.querySelector('#search').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const filteredData = cryptoData.filter(crypto => 
+        // Function to open the TradingView chart in a new tab
+        function openTradingView(symbol) {
+            const url = `https://www.tradingview.com/chart/?symbol=BINANCE:${symbol}`;
+            window.open(url, '_blank');
+        }
+
+        // Function to apply search filter
+        function applySearchFilter(data) {
+            const searchTerm = document.querySelector('#search').value.toLowerCase();
+            return data.filter(crypto => 
                 crypto.name.toLowerCase().includes(searchTerm)
             );
-            cryptoData.length = 0;
-            cryptoData.push(...filteredData);
-            populateTable();
+        }
+
+        // Function to sort table columns
+        function sortTable(columnIndex) {
+            const tableBody = document.querySelector('#crypto-table tbody');
+            const rowsArray = Array.from(tableBody.querySelectorAll('tr'));
+
+            const sortedRows = rowsArray.sort((rowA, rowB) => {
+                const cellA = rowA.children[columnIndex].textContent.trim();
+                const cellB = rowB.children[columnIndex].textContent.trim();
+
+                const valueA = columnIndex === 1 || columnIndex === 2
+                    ? parseFloat(cellA.replace(/[\$,]/g, ''))
+                    : cellA;
+                
+                const valueB = columnIndex === 1 || columnIndex === 2
+                    ? parseFloat(cellB.replace(/[\$,]/g, ''))
+                    : cellB;
+
+                return valueA > valueB ? 1 : -1;
+            });
+
+            tableBody.innerHTML = '';
+            sortedRows.forEach(row => tableBody.appendChild(row));
+        }
+
+        // Load more function when clicking the "Load More" button
+        document.getElementById('loadMore').addEventListener('click', () => {
+            currentPage++; // Increment the page number
+            fetchCryptoData(); // Fetch and display the next batch of data
         });
+
+        // Search functionality
+        document.querySelector('#search').addEventListener('input', () => {
+            populateTable(); // Refetch and display filtered data
+        });
+
+        // Initial fetch on page load
+        document.addEventListener('DOMContentLoaded', fetchCryptoData);
     </script>
 </body>
 </html>
