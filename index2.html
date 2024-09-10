@@ -3,42 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Price Tracker</title>
-    <link rel="stylesheet" href="indexstyle.css">
+    <title>Crypto Tracker</title>
+    <style>
+       
+        }
+    </style>
 </head>
 <body>
-    <!-- Hero Section -->
-    <section id="hero">
-        <div class="hero-content">
-            <h1>Track Your Favorite Cryptocurrencies</h1>
-            <p>Get real-time updates on the latest cryptocurrency prices.</p>
-            <a href="#prices" class="cta-button">See Prices</a>
+    <header>
+        <h1>Crypto Tracker</h1>
+        <input type="text" id="search" placeholder="Search cryptocurrencies...">
+    </header>
+    <div class="container">
+        <table id="crypto-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Market Cap</th>
+                    <th>24h</th>
+                    <th>7d</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be dynamically added here -->
+            </tbody>
+        </table>
+        <div class="news">
+            <h2>Crypto News</h2>
+            <h3>Bitcoin Reaches New All-Time High</h3>
+            <p>The leading cryptocurrency has surpassed its previous record, sparking renewed interest in the crypto market.</p>
+            <a href="#">Read More</a>
         </div>
-    </section>
+    </div>
 
-    <!-- Crypto Prices Section -->
-    <section id="prices">
-        <div class="container">
-            <div class="price-card">
-                <h2>Bitcoin</h2>
-                <p id="bitcoin-price">$...</p>
-            </div>
-            <div class="price-card">
-                <h2>Ethereum</h2>
-                <p id="ethereum-price">$...</p>
-            </div>
-        </div>
-    </section>
+    <script>
+        const cryptoData = [
+            { name: 'LINK Chainlink', price: 28.12, marketCap: '112,34,567', change24h: 4.20, change7d: 8.10 },
+            { name: 'XRP Ripple', price: 0.56, marketCap: '1,23,45,678', change24h: -0.70, change7d: -2.30 },
+            { name: 'LTC Litecoin', price: 234.67, marketCap: '2,34,56,789', change24h: 1.90, change7d: -0.50 },
+            { name: 'ETH Ethereum', price: 1800.45, marketCap: '23,45,67,890', change24h: 3.10, change7d: 5.80 },
+            { name: 'BTC Bitcoin', price: 56789.12, marketCap: '1,23,45,67,890', change24h: 2.50, change7d: -1.20 },
+        ];
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2024 Crypto Tracker. Follow us on 
-            <a href="#">Twitter</a>, 
-            <a href="#">Facebook</a>, 
-            <a href="#">LinkedIn</a>.
-        </p>
-    </footer>
+        function populateTable() {
+            const tableBody = document.querySelector('#crypto-table tbody');
+            tableBody.innerHTML = '';
 
-    <script src="app.js"></script>
+            cryptoData.forEach(crypto => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${crypto.name}</td>
+                    <td>$${crypto.price.toFixed(2)}</td>
+                    <td>$${crypto.marketCap}</td>
+                    <td class="${crypto.change24h >= 0 ? 'positive' : 'negative'}">${crypto.change24h.toFixed(2)}%</td>
+                    <td class="${crypto.change7d >= 0 ? 'positive' : 'negative'}">${crypto.change7d.toFixed(2)}%</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', populateTable);
+
+        document.querySelector('#search').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredData = cryptoData.filter(crypto => 
+                crypto.name.toLowerCase().includes(searchTerm)
+            );
+            cryptoData.length = 0;
+            cryptoData.push(...filteredData);
+            populateTable();
+        });
+    </script>
 </body>
 </html>
